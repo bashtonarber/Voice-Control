@@ -1,0 +1,110 @@
+  private KeywordRecognizer keywordRecognizer; // for voice control.
+    private Dictionary<string, Action> actions = new Dictionary<string, Action>(); // used to add words to the dictionary for the game to recognize for functions.
+
+    void Start()
+    {
+        
+        actions.Add("right", Right); // calls the Right function.
+        actions.Add("move right", MoveRight); // calls the MoveRight function.
+        actions.Add("left", Left); // calls the Left function.
+        actions.Add("move left", MoveLeft); // calls the MoveLeft function.
+        actions.Add("shoot", Throw); // calls the Throw function.
+        actions.Add("fire", ThrowFireBall); // calls the ThrowFireBall function.
+        actions.Add("water", ThrowWaterBall); // calls the ThrowWaterBall function.
+        actions.Add("1", Ball); // calls the Ball function.
+        actions.Add("2", WaterBall); // calls the WaterBall function.
+        actions.Add("3", FireBall); // calls the FireBall function.
+        actions.Add("ok", CloseIntroImage); // calls the CloseIntroImage function.
+
+        keywordRecognizer = new KeywordRecognizer(actions.Keys.ToArray());
+        keywordRecognizer.OnPhraseRecognized += RecognizedSpeech;
+        keywordRecognizer.Start();
+
+        // sets the ball text.
+        SetBallSelectionText();
+        SetBallTypeText();
+
+        // sets the image to true and timescale to 0.
+        introImage.gameObject.SetActive(true);
+        Time.timeScale = 0;
+
+        // shows the balls that are available.
+        bBall.SetActive(true);
+        fireBBall.SetActive(false);
+        waterBBall.SetActive(false);
+
+        
+        ballActivate = true;
+        
+        // sets the bools false so they have to be unlocked.
+        fireBallActivate = false;
+        waterBallActivate = false;
+        allowWaterBall = false;
+        allowFireBall = false;
+    }
+
+    public void Update()
+    {
+        if (HoopManager.score >= 10) // if the score is reached, the water ball is available.
+        {
+            allowWaterBall = true;
+        }
+
+        if (HoopManager.score >= 20) // if the score is reached, the fire ball is available.
+        {
+            allowFireBall = true;
+        }
+
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            CloseIntroImage();
+        }
+    }
+
+    private void RecognizedSpeech(PhraseRecognizedEventArgs speech)
+    {
+        print(speech.text); // prints to the console.
+        actions[speech.text].Invoke();
+    }
+
+    private void Right() // moves the player 2 spaces to the right.
+    {
+        transform.Translate(2, 0, 0);
+    }
+
+    private void MoveRight() //  moves the player 5 spaces to the right.
+    {
+        transform.Translate(5, 0, 0);
+    }
+
+    private void Left() //  moves the player -2 spaces to the left.
+    {
+        transform.Translate(-2, 0, 0);
+    }
+
+    private void MoveLeft() //  moves the player -5 spaces to the left.
+    {
+        transform.Translate(-5, 0, 0);
+    }
+
+    private void CloseIntroImage() // closes the image and sets the timescale to 1.
+    {
+        introImage.gameObject.SetActive(false);
+        Time.timeScale = 1;
+    }
+
+    private void Throw() // when this function is called, the ball prefab is instantiated + adds gravity + float force to push it forwards.
+    {
+        if (ballActivate == true)
+        {
+            var ball = Instantiate(ballPrefab, firePoint.position, firePoint.rotation) as Rigidbody;
+            ball.AddForce(firePoint.transform.forward * 1500f);
+            ballPrefab.GetComponent<Rigidbody>().useGravity = true;
+            Destroy(ball, 5); // destroys the ball after 5 seconds/
+        }
+
+        if (ballActivate == false)
+        {
+            // Normal ball can not be thrown.
+        }            
+    }
